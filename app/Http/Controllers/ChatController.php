@@ -9,6 +9,8 @@ use App\Models\ChatRoom;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
+use App\Events\NewChatMessage;
+
 class ChatController extends Controller
 {
     public function rooms(Request $request)
@@ -28,6 +30,7 @@ class ChatController extends Controller
         $newMessage->chat_room_id = $roomId;
         $newMessage->message = $request->message;
         $newMessage->save();
+        broadcast(new NewChatMessage($newMessage))->toOthers();
         return $newMessage;
     }
 }

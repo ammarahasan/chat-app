@@ -47,7 +47,34 @@ export default defineComponent({
         "input-message": InputMessage,
         "chat-room-selection": ChatRoomSelection,
     },
+    watch: {
+        currentRoom(val, oldVal) {
+            if (oldVal.id) {
+                this.disconnect(oldVal);
+            }
+            console.log("go to get messages");
+            this.connect();
+        },
+    },
     methods: {
+        connect() {
+            console.log("connect");
+            if (this.currentRoom.id) {
+                console.log("in current room");
+                let vm = this;
+                this.getMessages();
+                window.Echo.private("chat." + this.currentRoom.id).listen(
+                    ".message.new",
+                    (e) => {
+                        console.log("e => vm.getMessages()");
+                        vm.getMessages();
+                    }
+                );
+            }
+        },
+        disconnect(room) {
+            window.Echo.leave("chat." + room.id);
+        },
         getRooms() {
             axios
                 .get("/chat/rooms")
@@ -61,7 +88,7 @@ export default defineComponent({
         },
         setRoom(room) {
             this.currentRoom = room;
-            this.getMessages();
+            // this.getMessages();
         },
         getMessages() {
             axios("/chat/room/" + this.currentRoom.id + "/messages")
